@@ -12,7 +12,15 @@ queue_service = QueueService()
 @feed_bp.route('/next', methods=['GET'])
 def get_next_card():
     """获取下一张卡片"""
-    user_id = request.args.get('user_id', str(uuid.uuid4()))  # MVP: 自动生成匿名用户
+    user_id = request.args.get('user_id')
+    if not user_id:
+        user_id = str(uuid.uuid4())  # MVP: 自动生成匿名用户
+    
+    # 验证 UUID 格式，如果不是则生成新的
+    try:
+        uuid.UUID(user_id)
+    except ValueError:
+        user_id = str(uuid.uuid4())
     
     # 1. 从 Redis 队列获取
     card_id = queue_service.pop_card(user_id)
