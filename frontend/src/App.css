@@ -1,0 +1,128 @@
+/* MindSlot 全局样式 */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+/* 样式主题 - Cyberpunk Terminal */
+.cyberpunk_terminal {
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  color: #00ff9f;
+}
+
+.cyberpunk_terminal .chat-bubble {
+  border-left-color: #00ff9f;
+  background: rgba(0, 255, 159, 0.1);
+}
+
+.cyberpunk_terminal .tag {
+  background: #00ff9f;
+  color: #0f0c29;
+}
+
+/* 样式主题 - Paper Notes */
+.paper_notes {
+  background: linear-gradient(135deg, #f5f5dc, #fff8dc);
+  color: #333;
+}
+
+.paper_notes .chat-bubble {
+  border-left-color: #d4a574;
+  background: rgba(212, 165, 116, 0.1);
+}
+
+.paper_notes .tag {
+  background: #d4a574;
+  color: #fff;
+}
+
+/* 样式主题 - Comic Strip */
+.comic_strip {
+  background: linear-gradient(135deg, #ff6b6b, #feca57);
+  color: #2d3436;
+}
+
+.comic_strip .chat-bubble {
+  border-left-color: #fd79a8;
+  background: rgba(253, 121, 168, 0.2);
+  border: 2px solid #2d3436;
+}
+
+.comic_strip .tag {
+  background: #2d3436;
+  color: #feca57;
+}
+
+/* 样式主题 - Zen Minimalist */
+.zen_minimalist {
+  background: linear-gradient(135deg, #1e272e, #34495e);
+  color: #ecf0f1;
+}
+
+.zen_minimalist .chat-bubble {
+  border-left-color: #95a5a6;
+  background: rgba(149, 165, 166, 0.1);
+}
+
+.zen_minimalist .tag {
+  background: #95a5a6;
+  color: #1e272e;
+}
+
+/* Chat Bubble 角色样式 */
+.role-roast_master {
+  border-left-color: #e74c3c !important;
+}
+
+.role-wise_sage {
+  border-left-color: #3498db !important;
+}
+
+.role-chaos_agent {
+  border-left-color: #9b59b6 !important;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* 动画 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card-content > * {
+  animation: fadeIn 0.5s ease-out;
+}
