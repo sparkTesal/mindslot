@@ -7,12 +7,19 @@ from services.card_service import CardService
 import uuid
 
 feed_bp = Blueprint('feed', __name__)
-queue_service = QueueService()
+queue_service = QueueService()  # Uses in-memory queue if Redis unavailable
 
 @feed_bp.route('/next', methods=['GET'])
 def get_next_card():
     """获取下一张卡片"""
+    import json
+    log_path = r"y:\Work\mindslot\.cursor\debug.log"
+    
     user_id = request.args.get('user_id')
+    # #region agent log
+    with open(log_path, 'a', encoding='utf-8') as f: f.write(json.dumps({'location':'feed.py:get_next_card','message':'endpoint called','data':{'user_id':user_id},'timestamp':__import__('time').time()*1000,'sessionId':'debug-session','hypothesisId':'B,D'})+'\n')
+    # #endregion
+    
     if not user_id:
         user_id = str(uuid.uuid4())  # MVP: 自动生成匿名用户
     
@@ -23,11 +30,23 @@ def get_next_card():
         user_id = str(uuid.uuid4())
     
     # 1. 从 Redis 队列获取
-    card_id = queue_service.pop_card(user_id)
+    try:
+        card_id = queue_service.pop_card(user_id)
+        # #region agent log
+        with open(log_path, 'a', encoding='utf-8') as f: f.write(json.dumps({'location':'feed.py:pop_card','message':'redis pop result','data':{'card_id':card_id},'timestamp':__import__('time').time()*1000,'sessionId':'debug-session','hypothesisId':'A'})+'\n')
+        # #endregion
+    except Exception as e:
+        # #region agent log
+        with open(log_path, 'a', encoding='utf-8') as f: f.write(json.dumps({'location':'feed.py:pop_card_error','message':'redis error','data':{'error':str(e)},'timestamp':__import__('time').time()*1000,'sessionId':'debug-session','hypothesisId':'A'})+'\n')
+        # #endregion
+        return jsonify({"error": f"Redis error: {str(e)}"}), 500
     
     # 2. 如果队列为空，触发补货
     if not card_id:
         replenish_count = replenish_queue(user_id)
+        # #region agent log
+        with open(log_path, 'a', encoding='utf-8') as f: f.write(json.dumps({'location':'feed.py:replenish','message':'replenish result','data':{'replenish_count':replenish_count},'timestamp':__import__('time').time()*1000,'sessionId':'debug-session','hypothesisId':'B'})+'\n')
+        # #endregion
         if replenish_count == 0:
             return jsonify({"error": "No cards available"}), 404
         card_id = queue_service.pop_card(user_id)
@@ -37,7 +56,17 @@ def get_next_card():
         return jsonify({"error": "Card not found"}), 404
     
     # 4. 从数据库获取卡片内容
-    card = CardService.get_card_by_id(card_id)
+    try:
+        card = CardService.get_card_by_id(card_id)
+        # #region agent log
+        with open(log_path, 'a', encoding='utf-8') as f: f.write(json.dumps({'location':'feed.py:get_card','message':'card from db','data':{'card_found':card is not None,'card_id':card_id},'timestamp':__import__('time').time()*1000,'sessionId':'debug-session','hypothesisId':'E'})+'\n')
+        # #endregion
+    except Exception as e:
+        # #region agent log
+        with open(log_path, 'a', encoding='utf-8') as f: f.write(json.dumps({'location':'feed.py:get_card_error','message':'db error','data':{'error':str(e)},'timestamp':__import__('time').time()*1000,'sessionId':'debug-session','hypothesisId':'E'})+'\n')
+        # #endregion
+        return jsonify({"error": f"Database error: {str(e)}"}), 500
+        
     if not card:
         return jsonify({"error": "Card not found in database"}), 404
     

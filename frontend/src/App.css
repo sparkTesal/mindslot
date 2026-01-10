@@ -31,6 +31,15 @@ body {
   color: #0f0c29;
 }
 
+.cyberpunk_terminal .quote-block {
+  border-left-color: #00ff9f;
+  background: rgba(0, 255, 159, 0.1);
+}
+
+.cyberpunk_terminal .prose {
+  color: #00ff9f;
+}
+
 /* 样式主题 - Paper Notes */
 .paper_notes {
   background: linear-gradient(135deg, #f5f5dc, #fff8dc);
@@ -39,12 +48,25 @@ body {
 
 .paper_notes .chat-bubble {
   border-left-color: #d4a574;
-  background: rgba(212, 165, 116, 0.1);
+  background: rgba(212, 165, 116, 0.15);
 }
 
 .paper_notes .tag {
   background: #d4a574;
   color: #fff;
+}
+
+.paper_notes .mermaid-container {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.paper_notes .prose {
+  color: #333;
+}
+
+.paper_notes .quote-block {
+  background: rgba(212, 165, 116, 0.1);
+  border-left-color: #d4a574;
 }
 
 /* 样式主题 - Comic Strip */
@@ -64,6 +86,19 @@ body {
   color: #feca57;
 }
 
+.comic_strip .quote-block {
+  border-left-color: #fd79a8;
+  background: rgba(253, 121, 168, 0.15);
+}
+
+.comic_strip .prose {
+  color: #2d3436;
+}
+
+.comic_strip .mermaid-container {
+  background: rgba(255, 255, 255, 0.3);
+}
+
 /* 样式主题 - Zen Minimalist */
 .zen_minimalist {
   background: linear-gradient(135deg, #1e272e, #34495e);
@@ -78,6 +113,15 @@ body {
 .zen_minimalist .tag {
   background: #95a5a6;
   color: #1e272e;
+}
+
+.zen_minimalist .quote-block {
+  border-left-color: #95a5a6;
+  background: rgba(149, 165, 166, 0.1);
+}
+
+.zen_minimalist .prose {
+  color: #ecf0f1;
 }
 
 /* Chat Bubble 角色样式 */

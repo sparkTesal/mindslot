@@ -5,7 +5,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Block } from '../../types/card';
 
-mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+mermaid.initialize({ startOnLoad: false, theme: 'dark' });
 
 interface BlockRendererProps {
   block: Block;
@@ -13,12 +13,23 @@ interface BlockRendererProps {
 
 export const BlockRenderer: React.FC<BlockRendererProps> = ({ block }) => {
   const mermaidRef = React.useRef<HTMLDivElement>(null);
+  const [svgContent, setSvgContent] = React.useState<string>('');
 
   React.useEffect(() => {
-    if (block.type === 'mermaid' && mermaidRef.current) {
-      mermaid.contentLoaded();
+    if (block.type === 'mermaid' && mermaidRef.current && block.content) {
+      const renderMermaid = async () => {
+        try {
+          const id = `mermaid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+          const { svg } = await mermaid.render(id, block.content);
+          setSvgContent(svg);
+        } catch (err) {
+          console.error('Mermaid render error:', err);
+          setSvgContent(`<pre style="color: #ff6b6b;">Mermaid 渲染错误: ${err}</pre>`);
+        }
+      };
+      renderMermaid();
     }
-  }, [block]);
+  }, [block.content, block.type]);
 
   switch (block.type) {
     case 'chat_bubble':
@@ -35,16 +46,18 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({ block }) => {
 
     case 'mermaid':
       return (
-        <div ref={mermaidRef} className="mermaid-container my-4 p-4 bg-gray-900 rounded-lg overflow-x-auto">
-          <div className="mermaid">
-            {block.content}
-          </div>
+        <div ref={mermaidRef} className="mermaid-container my-4 p-4 bg-black/20 rounded-lg overflow-x-auto">
+          {svgContent ? (
+            <div dangerouslySetInnerHTML={{ __html: svgContent }} />
+          ) : (
+            <div className="opacity-50 animate-pulse">加载图表中...</div>
+          )}
         </div>
       );
 
     case 'markdown':
       return (
-        <div className="markdown-block my-3 prose prose-invert max-w-none">
+        <div className="markdown-block my-3 prose prose-inherit max-w-none">
           <ReactMarkdown>{block.content}</ReactMarkdown>
         </div>
       );
@@ -64,7 +77,7 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({ block }) => {
 
     case 'quote':
       return (
-        <blockquote className="quote-block border-l-4 border-cyan-500 pl-4 italic my-3 py-2 bg-cyan-900 bg-opacity-10">
+        <blockquote className="quote-block border-l-4 pl-4 italic my-3 py-2 bg-current/5">
           {block.content}
         </blockquote>
       );

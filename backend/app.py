@@ -60,10 +60,10 @@ if __name__ == '__main__':
     # 开发环境下自动创建表
     with app.app_context():
         db.create_all()
-        print("✓ Database tables created")
+        print("[OK] Database tables created")
     
-    print("🚀 MindSlot Backend starting...")
-    print("📍 API available at: http://localhost:5000")
-    print("📖 Health check: http://localhost:5000/health")
+    print("[START] MindSlot Backend starting...")
+    print("[API] Available at: http://localhost:5000")
+    print("[HEALTH] Check: http://localhost:5000/health")
     
     app.run(host='0.0.0.0', port=5000, debug=True)
