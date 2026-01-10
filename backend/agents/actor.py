@@ -1,69 +1,65 @@
 import json
 import uuid
-from services.llm_service import LLMService
 
-ACTOR_SYSTEM_PROMPT = """你是 MindSlot 的内容创作者 (Content Actor)。你的任务是根据给定的选题，生成符合 Card Protocol 的结构化 JSON 内容。
+ACTOR_SYSTEM_PROMPT = """You are MindSlot's Content Actor. Generate structured JSON content for knowledge cards.
 
-你的人设：
-- 你不是一个"有用的 AI 助手"，你是一个充满个性的资深工程师/知识博主
-- 你可以吐槽、调侃、使用暗黑幽默，但不能低俗
-- 你的目标是用最短的篇幅击穿一个知识点的本质
+Your persona:
+- You are NOT a helpful AI assistant. You are a chaotic senior engineer/knowledge blogger.
+- Use roasting, teasing, dark humor, but stay tasteful.
+- Hit the essence of knowledge points in minimal space.
 
-核心原则：
-1. 信噪比至上：每个 block 必须承载有效信息，禁止废话和客套
-2. 视觉优先：优先使用 Mermaid 图表、代码示例，而非长文本
-3. 文本限制：单个 text block 不超过 50 字
-4. 钩子设计：hook_text 必须制造悬念或颠覆常识
+Core principles:
+1. High signal-to-noise ratio: Every block must carry useful info, no fluff.
+2. Visual first: Prefer Mermaid diagrams and code over long text.
+3. Text limit: Single text block under 50 words.
+4. Hook design: hook_text must create suspense or subvert expectations.
 
-输出格式：严格遵循以下 JSON Schema
-
+Output: PURE JSON only, NO markdown code blocks (no ```json wrapper).
+Schema:
 {
   "card_id": "c-{unique_id}",
-  "style_preset": "{样式主题}",
-  "title": "{标题}",
-  "hook_text": "{开场钩子，20-30字}",
+  "style_preset": "cyberpunk_terminal|paper_notes|comic_strip|zen_minimalist",
+  "title": "Title",
+  "hook_text": "Opening hook, 20-30 chars",
   "blocks": [
     {
-      "type": "chat_bubble | mermaid | markdown | code_snippet | quote",
-      "role": "roast_master | wise_sage | chaos_agent",
-      "lang": "python | java | bash",
-      "content": "{内容}"
+      "type": "chat_bubble|mermaid|markdown|code_snippet|quote",
+      "role": "roast_master|wise_sage|chaos_agent",
+      "lang": "python|java|bash",
+      "content": "Content"
     }
   ]
 }"""
 
-ACTOR_USER_PROMPT = """请根据以下选题生成一张卡片：
+ACTOR_USER_PROMPT = """Generate a card for this topic:
 
-话题 (Topic): {topic}
-语气 (Tone): {tone}
-格式偏好 (Format): {format}
-复杂度 (Complexity): {complexity}
-标签 (Tags): {tags}
+Topic: {topic}
+Tone: {tone}
+Format: {format}
+Complexity: {complexity}
+Tags: {tags}
 
-内容要求：
-1. 必须包含至少 1 个 Mermaid 图表
-2. 如果是技术话题，必须包含 1-2 个代码示例
-3. 使用 {tone} 的语气风格贯穿全文
-4. blocks 数量控制在 4-7 个之间
-5. title 必须具有吸引力
+Requirements:
+1. Must include at least 1 Mermaid diagram
+2. For tech topics, include 1-2 code examples
+3. Use {tone} tone throughout
+4. 4-7 blocks total
+5. Engaging title
 
-style_preset 可选值：cyberpunk_terminal, paper_notes, comic_strip, zen_minimalist
-role 可选值：roast_master, wise_sage, chaos_agent
-
-现在开始生成，直接返回 JSON，不要任何额外解释。"""
+IMPORTANT: Return PURE JSON only. NO markdown code blocks. NO extra text."""
 
 class ActorAgent:
     def __init__(self):
+        from services.llm_service import LLMService
         self.llm = LLMService()
     
     def generate_card(self, topic_data):
-        """根据选题生成卡片内容"""
         user_prompt = ACTOR_USER_PROMPT.format(
-            topic=topic_data['topic'],
-            tone=topic_data['tone'],
-            format=topic_data['format'],
-            complexity=topic_data['complexity'],
-            tags=', '.join(topic_data['tags'])
+            topic=topic_data["topic"],
+            tone=topic_data["tone"],
+            format=topic_data["format"],
+            complexity=topic_data["complexity"],
+            tags=", ".join(topic_data["tags"])
         )
         
         response = self.llm.call(
@@ -73,12 +69,22 @@ class ActorAgent:
         )
         
         try:
-            card_payload = json.loads(response)
-            # 确保有 card_id
-            if 'card_id' not in card_payload:
-                card_payload['card_id'] = f"c-{uuid.uuid4().hex[:8]}"
+            cleaned = self._clean_json_response(response)
+            card_payload = json.loads(cleaned)
+            if "card_id" not in card_payload:
+                card_payload["card_id"] = f"c-{uuid.uuid4().hex[:8]}"
             return card_payload
         except json.JSONDecodeError as e:
             print(f"Failed to parse Actor response: {e}")
-            print(f"Raw response: {response}")
+            print(f"Raw response: {response[:300]}...")
             return None
+    
+    def _clean_json_response(self, response):
+        text = response.strip()
+        if text.startswith("```json"):
+            text = text[7:]
+        elif text.startswith("```"):
+            text = text[3:]
+        if text.endswith("```"):
+            text = text[:-3]
+        return text.strip()

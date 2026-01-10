@@ -7,23 +7,26 @@ class LLMService:
         self.model = None
         self.available = False
         
-        # 支持 OpenAI 或 DeepSeek
+        # 支持 OpenAI 兼容 API（DeepSeek、ChatAnywhere 等）
         try:
-            if os.getenv('DEEPSEEK_API_KEY'):
-                self.client = OpenAI(
-                    api_key=os.getenv('DEEPSEEK_API_KEY'),
-                    base_url=os.getenv('DEEPSEEK_BASE_URL', 'https://api.deepseek.com')
-                )
-                self.model = 'deepseek-chat'
+            api_key = os.getenv('LLM_API_KEY') or os.getenv('DEEPSEEK_API_KEY') or os.getenv('OPENAI_API_KEY')
+            base_url = os.getenv('LLM_BASE_URL') or os.getenv('DEEPSEEK_BASE_URL')
+            model = os.getenv('LLM_MODEL')
+            
+            if api_key:
+                if base_url:
+                    # 使用自定义 API（DeepSeek、ChatAnywhere 等）
+                    self.client = OpenAI(api_key=api_key, base_url=base_url)
+                    self.model = model or 'deepseek-chat'
+                    print(f"[LLMService] Using custom API: {base_url}, model: {self.model}")
+                else:
+                    # 使用 OpenAI 官方 API
+                    self.client = OpenAI(api_key=api_key)
+                    self.model = model or 'gpt-4o'
+                    print(f"[LLMService] Using OpenAI API, model: {self.model}")
                 self.available = True
-                print("[LLMService] Using DeepSeek API")
-            elif os.getenv('OPENAI_API_KEY'):
-                self.client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
-                self.model = 'gpt-4o'
-                self.available = True
-                print("[LLMService] Using OpenAI API")
             else:
-                print("[LLMService] No API key configured. Set OPENAI_API_KEY or DEEPSEEK_API_KEY environment variable.")
+                print("[LLMService] No API key configured. Set LLM_API_KEY environment variable.")
         except Exception as e:
             print(f"[LLMService] Failed to initialize: {e}")
     

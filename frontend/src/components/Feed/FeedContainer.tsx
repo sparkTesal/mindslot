@@ -138,11 +138,9 @@ export const FeedContainer: React.FC = () => {
             />
           ))}
         </div>
-        {retryCount > 0 && (
-          <div className="mt-4 text-xs opacity-40">
-            重试中... ({retryCount}/{MAX_RETRIES})
-          </div>
-        )}
+        <div className="mt-4 text-xs opacity-40">
+          等待中... ({retryCount + 1}/{MAX_RETRIES})
+        </div>
       </div>
     );
   }

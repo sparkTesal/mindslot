@@ -8,9 +8,6 @@ ContentFactoryService - 内容工厂服务
 import threading
 import time
 from typing import List, Optional
-from agents.director import DirectorAgent
-from agents.actor import ActorAgent
-from services.card_service import CardService
 from models import db
 
 
@@ -46,8 +43,11 @@ class ContentFactoryService:
         self._generation_lock = threading.Lock()
         self._llm_available = False
         
-        # 尝试初始化 Agent（可能因为没有 API Key 而失败）
+        # 尝试初始化 Agent（延迟导入避免循环依赖）
         try:
+            from agents.director import DirectorAgent
+            from agents.actor import ActorAgent
+            
             self.director = DirectorAgent()
             self.actor = ActorAgent()
             
@@ -112,6 +112,8 @@ class ContentFactoryService:
             self._generating = True
         
         try:
+            from services.card_service import CardService
+            
             print(f"[ContentFactory] Starting generation of {count} cards...")
             
             # 1. 根据用户偏好调整 domains

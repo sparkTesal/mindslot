@@ -20,6 +20,7 @@ queue_service = QueueService()
 # 配置
 MIN_CARD_STOCK = 10  # 最低卡片库存
 MIN_QUEUE_LENGTH = 5  # 触发补货的队列长度阈值
+PREEMPTIVE_GENERATE_THRESHOLD = 3  # 提前触发生成的阈值（未看过的卡片数）
 
 
 @feed_bp.route('/next', methods=['GET'])
@@ -90,13 +91,20 @@ def get_next_card():
     queue_length = queue_service.get_queue_length(user_id)
     total_cards = Card.query.count()
     
-    # 6. 如果库存低，触发后台生成
-    if total_cards < MIN_CARD_STOCK:
-        trigger_card_generation(user_id, async_mode=True)
+    # 6. 计算用户还有多少未看过的卡片
+    unviewed_cards = CardService.get_unviewed_cards(user_id, limit=100)
+    unviewed_count = len(unviewed_cards)
     
-    # 7. 构建响应
+    # 7. 提前触发生成：如果未看过的卡片少于阈值，提前生成
+    if unviewed_count <= PREEMPTIVE_GENERATE_THRESHOLD and content_factory.is_llm_available():
+        if not content_factory._generating:  # 避免重复触发
+            print(f"[Feed] Preemptive generation: only {unviewed_count} unviewed cards left")
+            trigger_card_generation(user_id, async_mode=True)
+    
+    # 8. 构建响应
     response_data = card.to_dict()
     response_data['queue_length'] = queue_length
+    response_data['unviewed_count'] = unviewed_count
     response_data['needs_replenish'] = queue_length < MIN_QUEUE_LENGTH
     response_data['total_cards_in_pool'] = total_cards
     
